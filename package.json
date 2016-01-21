@@ -16,6 +16,7 @@
   "author": "Elger van Boxtel",
   "license": "ISC",
   "dependencies": {
+    "deasync": "^0.1.4",
     "npm": "^3.5.3",
     "npmlog": "^2.0.0"
   }
