@@ -1,4 +1,7 @@
 /* global __dirname */
 var lazyRequire = require(__dirname + '/index.js');
 
-lazyRequire.load('yargs');
+var mod = lazyRequire.load('yargs');
+
+console.assert(mod, 'Module not loaded');
+
