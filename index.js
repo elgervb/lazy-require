@@ -1,7 +1,9 @@
-exports.lazyRequire = function() {
-  /* global __dirname */
-exports.lazyRequire = function() {
+/* global __dirname */
+'use strict';
+module.exports = (function(options) {
   var npm = require('npm');
+  var log = require('npmlog');
+  
   var packageJson = require(__dirname + '/package.json');
   
   var loadDev = function(module) {
@@ -24,10 +26,10 @@ exports.lazyRequire = function() {
             return require(modulePath);
         } catch (loadError) {
           if (loadError.code && loadError.code === 'MODULE_NOT_FOUND') {
-            console.log('Loading ' + moduleString +'...');
+            log.info('Loading ' + moduleString +'...');
             npm.commands.install([moduleString], function (er, data) {
               if (er) throw er
-              console.log('Installed module ' + module + ' with ' + data.length + ' dependencies');
+              log.info('Installed module ' + module + ' with ' + data.length + ' dependencies');
               return require(modulePath);
             })
           };
@@ -55,7 +57,7 @@ exports.lazyRequire = function() {
       return module;
     }
     
-    console.log('Loading ' + module + ' module which is not mentioned in package.json');
+    log.info('Loading ' + module + ' module which is not mentioned in package.json');
     return module;
   }
   
@@ -63,7 +65,4 @@ exports.lazyRequire = function() {
     loadDev: loadDev,
     load: load
   }
-}
-
-exports.lazyRequire().loadDev('browserify');
-};
+})();
