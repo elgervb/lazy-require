@@ -4,6 +4,7 @@
   "description": "lazy require and install node modules",
   "main": "index.js",
   "scripts": {
+    "start": "node test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -13,5 +14,9 @@
     "install"
   ],
   "author": "Elger van Boxtel",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "npm": "^3.5.3",
+    "npmlog": "^2.0.0"
+  }
 }
