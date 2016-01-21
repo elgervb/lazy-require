@@ -1,0 +1,17 @@
+{
+  "name": "lazy-require",
+  "version": "0.0.1",
+  "description": "lazy require and install node modules",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node",
+    "require",
+    "npm",
+    "install"
+  ],
+  "author": "Elger van Boxtel",
+  "license": "ISC"
+}
