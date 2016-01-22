@@ -2,12 +2,12 @@
 
 module.exports = (function lazyRequire(options) {
   var npm = require('npm');
-  var log = require('npmlog');
+  var log = require('npmlog'); 
   var deasync = require('deasync');
   
-  var basePath = __dirname + '/../..';
+  var basePath = require('path').normalize(__dirname + '/../..');
   
-  var loadPackageJson = function() {
+  var packageJson = (function() {
     var fs = require('fs');
     try {
       fs.statSync(basePath + '/package.json');
@@ -22,8 +22,7 @@ module.exports = (function lazyRequire(options) {
         // no package.json
       }
     }
-  };
-  var packageJson = loadPackageJson();
+  })();
   
   var loadDev = function(module) {
     return requireNpm(module, true);
@@ -38,7 +37,7 @@ module.exports = (function lazyRequire(options) {
     var moduleString = loadModuleStringFromPackageJson(module, isDev);
     
     (function syncLoad(moduleString, moduleName) {
-      npm.load({}, function error(err){
+      npm.load({loglevel: 'silent'}, function error(err){
         if (err) throw err;
         
         var modulePath = basePath + '/node_modules/' + moduleName
@@ -47,6 +46,9 @@ module.exports = (function lazyRequire(options) {
         } catch (loadError) {
           if (loadError.code && loadError.code === 'MODULE_NOT_FOUND') {
             log.info('Loading ' + moduleString +'...');
+            
+            // I would like to have the install summary disabled, but that is not yet possible
+            // @see https://github.com/npm/npm/issues/10732
             npm.commands.install([moduleString], function (er, data) {
               if (er) throw er
               log.info('Installed module ' + module + ' with ' + data.length + ' dependencies');
