@@ -1,11 +1,16 @@
 /* global __dirname */
+'use strict';
 var lazyRequire = require(__dirname);
-lazyRequire.options({basepath:'./'});
 
 
 function rmdirSync(dir){
   var fs = require('fs');
-  var s = fs.lstatSync(dir);
+  var s;
+  try {
+    s = fs.lstatSync(dir);
+  } catch(err) {
+    return;
+  }
   if(s.isFile()){
     fs.unlinkSync(dir);
     return;
@@ -23,7 +28,7 @@ function rmdirSync(dir){
 }
 
 rmdirSync('./node_modules/yargs');
-var mod = lazyRequire.load('yargs');
+var mod = lazyRequire('yargs', {basepath:'./'});
 
 console.assert(mod, 'Module not loaded');
 

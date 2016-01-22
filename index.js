@@ -1,3 +1,4 @@
+/* global __dirname */
 'use strict';
 
 module.exports = (function lazyRequire() {
@@ -5,21 +6,33 @@ module.exports = (function lazyRequire() {
   var log = require('npmlog'); 
   var deasync = require('deasync');
   var path = require('path');
-  var options = {
+  var defaults = {
     basepath: path.normalize(__dirname + '/../..')
   };
   
-  var loadDev = function(module) {
-    return requireNpm(module, true);
-  };
-  
-  var load = function(module) {
-     return requireNpm(module, false);
-  };
-  var requireNpm = function(module, isDev) {
-    
-    var result;
-    var moduleString = require('./lib/modulestring').load(options.basepath, module, isDev);
+  var mergeOptions = function(options) {
+    if (typeof options === 'object') {
+      for (var key in options) {
+        if (options.hasOwnProperty(key)) {
+          var value = options[key];
+          if (key === 'basepath') {
+            if (path.isAbsolute(value)) {
+              value = path.normalize(value)
+            } else {
+              value = path.normalize(__dirname + '/' + value)
+            }
+          }
+          defaults[key] = value;
+        }
+      }
+    }
+    return defaults
+  }
+ 
+  var requireNpm = function(module, options) {
+    var result, moduleString;
+    options = mergeOptions(options);
+    moduleString = require('./lib/modulestring')(options.basepath, module);
     
     (function syncLoad(moduleString, moduleName) {
       npm.load({loglevel: 'silent'}, function error(err){
@@ -53,25 +66,7 @@ module.exports = (function lazyRequire() {
     return result;
   };
   
-  return {
-    loadDev: loadDev,
-    load: load,
-    options: function(additions) {
-      if (typeof additions === 'object') {
-        for (var key in additions) {
-          if (additions.hasOwnProperty(key)) {
-            var value = additions[key];
-            if (key === 'basepath') {
-              if (path.isAbsolute(value)) {
-                value = path.normalize(value)
-              } else {
-                value = path.normalize(__dirname + '/' + value)
-              }
-            }
-            options[key] = value;
-          }
-        }
-      }
-    }
+  return function(module, options) {
+      return requireNpm(module, options);
   }
 })();
