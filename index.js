@@ -1,28 +1,13 @@
 'use strict';
 
-module.exports = (function lazyRequire(options) {
+module.exports = (function lazyRequire() {
   var npm = require('npm');
   var log = require('npmlog'); 
   var deasync = require('deasync');
-  
-  var basePath = require('path').normalize(__dirname + '/../..');
-  
-  var packageJson = (function() {
-    var fs = require('fs');
-    try {
-      fs.statSync(basePath + '/package.json');
-      log.info('Use package.json from ' + basePath + '/package.json');
-      return require(basePath + '/package.json');
-    } catch(err) {
-      try {
-        basePath = __dirname + '/.';
-        log.info('Use package.json from ' + basePath + '/package.json');
-        return require(basePath + '/package.json');
-      } catch (err2) {
-        // no package.json
-      }
-    }
-  })();
+  var path = require('path');
+  var options = {
+    basepath: path.normalize(__dirname + '/../..')
+  };
   
   var loadDev = function(module) {
     return requireNpm(module, true);
@@ -34,13 +19,13 @@ module.exports = (function lazyRequire(options) {
   var requireNpm = function(module, isDev) {
     
     var result;
-    var moduleString = loadModuleStringFromPackageJson(module, isDev);
+    var moduleString = require('./lib/modulestring').load(options.basepath, module, isDev);
     
     (function syncLoad(moduleString, moduleName) {
       npm.load({loglevel: 'silent'}, function error(err){
         if (err) throw err;
         
-        var modulePath = basePath + '/node_modules/' + moduleName
+        var modulePath = options.basepath + '/node_modules/' + moduleName
         try {
             result = require(modulePath);
         } catch (loadError) {
@@ -68,31 +53,25 @@ module.exports = (function lazyRequire(options) {
     return result;
   };
   
-  var fixVersion = function(version) {
-    if (version) {
-      return version.replace(/[^\d.]/g, '');
-    }
-    return false;
-  };
-  var loadModuleStringFromPackageJson = function(module, isDev) {
-    isDev = isDev || false;
-    var namespace = isDev ? packageJson.devDependencies : packageJson.dependencies;
-    
-    if (namespace && namespace.hasOwnProperty(module)) {
-      var version = packageJson.devDependencies[module];
-      if (version) {
-        version = fixVersion(version);
-        return module+'@'+version;
-      }
-      return module;
-    }
-    
-    log.info('Loading ' + module + ' module which is not mentioned in package.json ' + packageJson.name);
-    return module;
-  }
-  
   return {
     loadDev: loadDev,
-    load: load
+    load: load,
+    options: function(additions) {
+      if (typeof additions === 'object') {
+        for (var key in additions) {
+          if (additions.hasOwnProperty(key)) {
+            var value = additions[key];
+            if (key === 'basepath') {
+              if (path.isAbsolute(value)) {
+                value = path.normalize(value)
+              } else {
+                value = path.normalize(__dirname + '/' + value)
+              }
+            }
+            options[key] = value;
+          }
+        }
+      }
+    }
   }
 })();
