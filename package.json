@@ -19,5 +19,8 @@
     "deasync": "^0.1.4",
     "npm": "^3.5.3",
     "npmlog": "^2.0.0"
+  },
+  "lazyDependencies" : {
+    "yargs": ">=3.32.0"
   }
 }

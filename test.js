@@ -28,8 +28,13 @@ function rmdirSync(dir){
 }
 
 rmdirSync('./node_modules/yargs');
-var mod = lazyRequire('yargs', {basepath:'./'});
+rmdirSync('./node_modules/imagemin');
 
+
+var mod = lazyRequire('yargs', {basepath:'./'});
+console.assert(mod, 'Module not loaded');
+
+mod = lazyRequire('imagemin', {basepath:'./'});
 console.assert(mod, 'Module not loaded');
 
 console.log('done!');

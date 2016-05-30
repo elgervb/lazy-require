@@ -34,30 +34,28 @@ module.exports = (function lazyRequire() {
     options = mergeOptions(options);
     moduleString = require('./lib/modulestring')(options.basepath, module);
     
-    (function syncLoad(moduleString, moduleName) {
-      npm.load({loglevel: 'silent'}, function error(err){
-        if (err) throw err;
-        
-        var modulePath = options.basepath + '/node_modules/' + moduleName
-        try {
+    npm.load({loglevel: 'silent', loaded: false}, function error(err){
+      if (err) throw err;
+      
+      var modulePath = options.basepath + '/node_modules/' + module
+      try {
+          result = require(modulePath);
+      } catch (loadError) {
+        if (loadError.code && loadError.code === 'MODULE_NOT_FOUND') {
+          log.info('Loading ' + moduleString +'...');
+          
+          // I would like to have the install summary disabled, but that is not yet possible
+          // @see https://github.com/npm/npm/issues/10732
+          npm.commands.install([moduleString], function (er, data) {
+            if (er) throw er
+            log.info('Installed module ' + module + ' with ' + data.length + ' dependencies');
             result = require(modulePath);
-        } catch (loadError) {
-          if (loadError.code && loadError.code === 'MODULE_NOT_FOUND') {
-            log.info('Loading ' + moduleString +'...');
-            
-            // I would like to have the install summary disabled, but that is not yet possible
-            // @see https://github.com/npm/npm/issues/10732
-            npm.commands.install([moduleString], function (er, data) {
-              if (er) throw er
-              log.info('Installed module ' + module + ' with ' + data.length + ' dependencies');
-              result = require(modulePath);
-            })
-          } else {
-            throw loadError;
-          }
+          })
+        } else {
+          throw loadError;
         }
-      });
-    })(moduleString, module);
+      }
+    });
     
     while ( result === undefined) {
       deasync.sleep(100);
